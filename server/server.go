@@ -2,28 +2,43 @@
 package server
 
 import (
-    "net/http"
+	"fmt"
+	"net/http"
 )
 
 type Server struct {
-    var server = &http.Server
-    var address string
-    var port string
+	host    string
+	port    string
+	handler http.Handler
+	server  *http.Server
 }
 
-func (this *Server) SetAddress(address string) {
-    this.address = address
+func NewServer(host string, port string, handler http.Handler) *Server {
+	server := &Server{
+		host:    host,
+		port:    port,
+		handler: handler,
+	}
+	return server
+}
+
+func (this *Server) SetHost(host string) {
+	this.host = host
 }
 
 func (this *Server) SetPort(port string) {
-    this.port = port
+	this.port = port
+}
+
+func (this *Server) Address() string {
+	return fmt.Sprintf("%s:%s", this.host, this.port)
 }
 
 func (this *Server) Start() error {
-    this.server = &http.Server{
-        Addr: this.address,
-        Handler: this,
-    }
+	this.server = &http.Server{
+		Addr:    this.Address(),
+		Handler: this.handler,
+	}
 
-    return this.server.ListenAndServe()
+	return this.server.ListenAndServe()
 }

@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
-	"github.com/justiniso/golock/urls"
+	"github.com/gorilla/mux"
+	"github.com/justiniso/golock/reservation"
+	"github.com/justiniso/golock/server"
 )
 
 func homepage(w http.ResponseWriter, r *http.Request) {
@@ -13,7 +16,23 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	port := os.Getenv("PORT")
 	host := os.Getenv("HOST")
-	urls.Handle()
+	port := os.Getenv("PORT")
+
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	if port == "" {
+		port = "8080"
+	}
+
+	r := mux.NewRouter()
+	r.HandleFunc("/reservation/{resource}", reservation.ReservationHandler).
+		Methods("GET", "POST")
+
+	server := server.NewServer(host, port, r)
+
+	log.Printf("Server listening on: %s", server.Address())
+	server.Start()
+	log.Fatal("Server died...")
 }
